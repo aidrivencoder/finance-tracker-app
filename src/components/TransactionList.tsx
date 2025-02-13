@@ -1,6 +1,7 @@
 import { Transaction } from '@/types';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
 
 interface Props {
   transactions: Transaction[];
@@ -9,8 +10,46 @@ interface Props {
 }
 
 export function TransactionList({ transactions, onEdit, onDelete }: Props) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
+
+  const handleDelete = (id: string) => {
+    setTransactionToDelete(id);
+    setIsModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (transactionToDelete) {
+      onDelete(transactionToDelete);
+      setTransactionToDelete(null);
+      setIsModalOpen(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg">
+            <p className="mb-4">Are you sure you want to delete this transaction?</p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <AnimatePresence>
         {transactions.map((transaction, index) => (
           <motion.div
@@ -46,7 +85,7 @@ export function TransactionList({ transactions, onEdit, onDelete }: Props) {
                   Edit
                 </button>
                 <button
-                  onClick={() => onDelete(transaction.id)}
+                  onClick={() => handleDelete(transaction.id)}
                   className="px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
                   Delete
